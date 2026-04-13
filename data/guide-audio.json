@@ -2,7 +2,7 @@
   {
     "id": "start_announcement",
     "file": "assets/audio/guides/start_announcement.wav",
-    "text": "こんにちは！私はアフィーラ。今日の目的地はお台場の科学未来館ですね。私が目的地までガイドさせてもらいます！途中でクイズやゲームがあるのでお楽しみに！"
+    "text": "こんにちは！私はアフィーラ。今日の目的地は東京ディズニーランドですね。私が目的地までガイドさせてもらいます！途中でクイズやゲームがあるのでお楽しみに！"
   },
   {
     "id": "quiz_intro",
@@ -16,18 +16,28 @@
     "text": "そろそろ目的地につきます。楽しんで来てくださいね！ありがとうございました！アフィーラでした。忘れないでね。"
   },
   {
-    "id": "event_intro_miraikan",
-    "file": "assets/audio/guides/event_intro_miraikan.wav",
-    "text": "今日の目的地は科学未来館。今日はお台場の日本科学未来館へ向かいます。未来館には、地球を映し出す大きなシンボル展示、ジオ・コスモスがあります。到着したら、家族でいちばん未来っぽいと思った展示をひとつ決めてみましょう。"
+    "id": "event_intro_disney",
+    "file": "assets/audio/guides/event_intro_disney.wav",
+    "text": "今日の目的地は東京ディズニーランド。今日は東京ディズニーランドへ向かいます。着く前に、家族でいちばん最初に乗りたいものをひとつずつ決めておきましょう。あとで答え合わせです。"
   },
   {
-    "id": "event_shutoko_guide",
-    "file": "assets/audio/guides/event_shutoko_guide.wav",
-    "text": "東京の高速道路は、どうしてこんなに複雑？ 東京の高速道路が複雑なのは、巨大な街ができたあとに、その上へ道路を通していったからです。まっすぐ作る余裕が少なく、建物や川をよけながら通したため、東京らしい独特な形になりました。このあと、海へ抜ける景色に変わっていきます。"
+    "id": "event_shutoko_enter",
+    "file": "assets/audio/guides/event_shutoko_enter.wav",
+    "text": "ここからは夢の国へのショートカット。ここから先は、東京の街の上や下をぬけながら東へ進みます。普段の街が少しずつおでかけモードに変わっていくところに注目です。窓の外の景色が変わったと思ったら、家族で最初に気づいた人が教えてください。"
   },
   {
-    "id": "event_rainbow_bridge_prelude",
-    "file": "assets/audio/guides/event_rainbow_bridge_prelude.wav",
-    "text": "まもなくレインボーブリッジ。ここから景色が大きく開けて、お台場へ入っていきます。橋に入ったら、短いリズムゲームが始まります。"
+    "id": "event_c2_tunnel",
+    "file": "assets/audio/guides/event_c2_tunnel.wav",
+    "text": "東京の下を進んでいます。このあたりは、街の下や川の近くを通りながら東へ進む区間です。高いビルの街から、だんだん空の広い湾岸エリアへ近づいていきます。このあと景色がひらけてきたら、海が近いサインです。"
+  },
+  {
+    "id": "event_wangan_mission",
+    "file": "assets/audio/guides/event_wangan_mission.wav",
+    "text": "見つけたら教えてミッション。これから先、空が広くて大きな建物が増えてきます。大きな観覧車みたいなもの、モノレールみたいな乗りもの、ホテルっぽい建物。この中で先に見つけたものを教えてください。"
+  },
+  {
+    "id": "event_maihama_prelude",
+    "file": "assets/audio/guides/event_maihama_prelude.wav",
+    "text": "まもなく舞浜エリア。もうすぐ東京ディズニーランドの近くです。ここからは、夢の国に入る前の最後のウォーミングアップです。"
   }
 ]
