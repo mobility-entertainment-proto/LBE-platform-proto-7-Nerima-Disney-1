@@ -1,0 +1,13 @@
+{
+  "name": "lbe-platform-proto-4",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "speak:guide": "node scripts/speak-guide.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.7",
+    "microsoft-cognitiveservices-speech-sdk": "^1.43.1"
+  }
+}

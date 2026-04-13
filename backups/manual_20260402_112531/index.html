@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<!-- LBE-platform-proto-7-Nerima-Disney-1: バスガイド型 練馬→東京ディズニーランド -->
+<!-- LBE-platform-proto-4: バスガイド型 飯倉→お台場 -->
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>Bus Guide LBE — 練馬→東京ディズニーランド</title>
+<title>Bus Guide LBE — 飯倉→お台場</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -27,12 +27,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04040e;
 }
 #config-route{font-size:12px;color:#88aacc;letter-spacing:2px;margin-bottom:4px;}
 #config-subtitle{font-size:11px;color:#334;letter-spacing:2px;margin-bottom:24px;}
-#config-gps-status{
-  width:100%;max-width:520px;
-  margin-bottom:14px;padding:10px 12px;
-  background:#0a0f1f;border:1px solid #223252;border-radius:10px;
-  color:#88aacc;font-size:12px;letter-spacing:1px;text-align:center;
-}
 
 .ev-card{
   width:100%;max-width:520px;
@@ -92,21 +86,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04040e;
 }
 #status-screen.hidden{opacity:0;pointer-events:none;}
 
-#status-bg{
-  position:absolute;inset:0;width:100%;height:100%;z-index:0;
-}
-#status-overlay{
-  position:absolute;inset:0;z-index:1;
-  background:linear-gradient(180deg, rgba(4,8,24,0.45) 0%, rgba(4,8,24,0.72) 100%);
-}
-#status-content{
-  position:relative;z-index:2;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  width:min(90vw,620px);
-  padding:28px 22px 120px;
-  text-align:center;
-}
-
 #status-title{
   font-size:clamp(18px,5vw,30px);letter-spacing:3px;color:#fff;
   text-shadow:0 0 24px #55aaff;margin-bottom:4px;
@@ -121,10 +100,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04040e;
   font-size:clamp(28px,8vw,52px);font-weight:bold;color:#66ccff;
   text-shadow:0 0 20px #55aaff;margin-bottom:4px;
 }
-#status-dist-unit{
-  font-size:13px;color:#b8d8ff;margin-bottom:28px;
-  text-shadow:0 0 12px rgba(85,170,255,0.18);
-}
+#status-dist-unit{font-size:13px;color:#445;margin-bottom:28px;}
 
 #status-progress{display:flex;gap:10px;margin-bottom:28px;}
 .sp-dot{
@@ -208,26 +184,21 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04040e;
 <!-- ━━ Config screen ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <div id="config-screen">
   <div id="config-title">BUS GUIDE LBE</div>
-  <div id="config-route">練馬 → 首都高5号・C2・湾岸線 → TDL</div>
+  <div id="config-route">飯倉 → 首都高C1〜B → お台場</div>
   <div id="config-subtitle">LOCATION BASED ENTERTAINMENT</div>
-  <div id="config-gps-status">GPS: 設定画面で位置情報を確認中...</div>
   <div id="config-cards"></div>
   <button id="config-start-btn">▶ START</button>
 </div>
 
 <!-- ━━ Status screen ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ -->
 <div id="status-screen" class="hidden">
-  <canvas id="status-bg"></canvas>
-  <div id="status-overlay"></div>
-  <div id="status-content">
   <div id="status-title">BUS GUIDE LBE</div>
-  <div id="status-route">練馬 → 首都高 → 東京ディズニーランド</div>
+  <div id="status-route">飯倉 → 首都高 → お台場</div>
   <div id="status-next-label">NEXT EVENT</div>
   <div id="status-event-name">—</div>
   <div id="status-dist">—</div>
   <div id="status-dist-unit"></div>
   <div id="status-progress"></div>
-  </div>
   <div id="status-gps">GPS: 取得待機中</div>
 </div>
 
@@ -258,136 +229,93 @@ html,body{width:100%;height:100%;overflow:hidden;background:#04040e;
 <script type="module">
 import { AudioManager }    from './core/audio.js';
 import { EventEngine }     from './core/event-engine.js';
-import { RoadBackground }  from './core/road-background.js';
 import { GuideCard }       from './contents/guide-card/game.js';
 import { FamilyQuiz }      from './contents/quiz/game.js';
 import { ShortRhythmGame } from './contents/rhythm-short/game.js';
 
 // ── イベント定義（ルート順） ──────────────────────────────────────
-// ルート: 練馬駅前 → 首都高5号池袋線 → C2中央環状線 → 湾岸線 → 葛西/浦安 → TDL
 const EVENT_DEFS = [
   {
-    id:            'event_intro_disney',
-    name:          '出発：今日の目的地はディズニーランド',
-    icon:          '🏰',
-    lat:           35.7357,
-    lng:           139.6517,
-    defaultRadius: 600,
-    minRadius:     200,
-    contentType:   'guide',
-    contentData: {
-      icon:  '🏰',
-      title: '今日の目的地は東京ディズニーランド',
-      body:  '今日は東京ディズニーランドへ向かいます。着く前に、家族で"最初に乗りたいもの"を1つずつ決めておきましょう。あとで答え合わせです。',
-      audioSrc: 'assets/audio/guides/event_intro_disney.wav',
-    },
-  },
-  {
-    id:            'event_shutoko_enter',
-    name:          '首都高導入：夢の国へのショートカット',
-    icon:          '🛣️',
-    lat:           35.7480,
-    lng:           139.7000,
-    defaultRadius: 500,
-    minRadius:     180,
-    contentType:   'guide',
-    contentData: {
-      icon:   '🛣️',
-      title:  'ここからは夢の国へのショートカット',
-      body:   'ここから先は、東京の街の上や下をぬけながら東へ進みます。普段の街が少しずつ"おでかけモード"に変わっていくところに注目です。',
-      footer: '窓の外の景色が変わったと思ったら、家族で最初に気づいた人が教えてください。',
-      audioSrc: 'assets/audio/guides/event_shutoko_enter.wav',
-    },
-  },
-  {
-    id:            'event_c2_tunnel',
-    name:          'トリビア：地下と運河をぬけて海へ',
-    icon:          '🚇',
-    lat:           35.6900,
-    lng:           139.8000,
-    defaultRadius: 600,
-    minRadius:     200,
-    contentType:   'guide',
-    contentData: {
-      icon:   '🚇',
-      title:  '東京の下を進んでいます',
-      body:   'このあたりは、街の下や川の近くを通りながら東へ進む区間です。高いビルの街から、だんだん空の広い湾岸エリアへ近づいていきます。',
-      footer: 'このあと景色がひらけてきたら、海が近いサインです。',
-      audioSrc: 'assets/audio/guides/event_c2_tunnel.wav',
-    },
-  },
-  {
-    id:            'event_wangan_mission',
-    name:          '参加型ミッション：先に見つけたら勝ち',
-    icon:          '👁️',
-    lat:           35.6480,
-    lng:           139.8450,
-    defaultRadius: 700,
-    minRadius:     250,
-    contentType:   'guide',
-    contentData: {
-      icon:   '👁️',
-      title:  '見つけたら教えてミッション',
-      body:   'これから先、空が広くて大きな建物が増えてきます。大きな観覧車みたいなもの、モノレールみたいな乗りもの、ホテルっぽい建物。この中で先に見つけたものを教えてください。',
-      audioSrc: 'assets/audio/guides/event_wangan_mission.wav',
-    },
-  },
-  {
-    id:            'event_kasai_quiz',
-    name:          '4択クイズ：ディズニーランドの入口エリア',
-    icon:          '🧠',
-    lat:           35.6450,
-    lng:           139.8650,
-    defaultRadius: 550,
-    minRadius:     200,
-    contentType:   'quiz',
-    contentData: {
-      question:     '東京ディズニーランドに入って、最初にゲストを迎えるエリアとして有名なのはどれだと思う？',
-      choices:      ['ワールドバザール', 'アドベンチャーランド', 'トゥーンタウン', 'トゥモローランド'],
-      correctIndex: 0,
-      correctMsg:   '正解はワールドバザール。入口を入ってすぐの、屋根のあるにぎやかな通りです。着いたら"最初に見えたもの"を覚えておきましょう。',
-      wrongMsg:     '正解はワールドバザール。ほかのエリアも人気なので迷いますよね。着いたら"最初に行きたいエリア"も話してみましょう。',
-    },
-  },
-  {
-    id:            'event_maihama_prelude',
-    name:          '到着前予告：まもなく舞浜エリア',
-    icon:          '✨',
-    lat:           35.6310,
-    lng:           139.8760,
-    defaultRadius: 450,
+    id:            'event_intro_miraikan',
+    name:          '未来館への導入',
+    icon:          '🏛️',
+    lat:           35.6578,
+    lng:           139.7385,
+    defaultRadius: 400,
     minRadius:     150,
     contentType:   'guide',
     contentData: {
-      icon:      '✨',
-      title:     'まもなく舞浜エリア',
-      body:      'もうすぐ東京ディズニーランドの近くです。ここからは、夢の国に入る前の最後のウォーミングアップです。',
-      audioSrc: 'assets/audio/guides/event_maihama_prelude.wav',
+      icon:  '🏛️',
+      title: '今日の目的地は科学未来館',
+      body:  '今日はお台場の日本科学未来館へ向かいます。未来館には、地球を映し出す大きなシンボル展示「ジオ・コスモス」があります。到着したら、家族で"いちばん未来っぽい"と思った展示を1つ決めてみましょう。',
     },
   },
   {
-    id:            'event_rhythm_disney',
-    name:          'リズムゲーム（ディズニーランド到着前）',
+    id:            'event_shutoko_guide',
+    name:          '首都高ガイド',
+    icon:          '🛣️',
+    lat:           35.6488,
+    lng:           139.7488,
+    defaultRadius: 500,
+    minRadius:     200,
+    contentType:   'guide',
+    contentData: {
+      icon:   '🛣️',
+      title:  '東京の高速道路は、どうしてこんなに複雑？',
+      body:   '東京の高速道路が複雑なのは、巨大な街ができたあとに、その上へ道路を通していったからです。まっすぐ作る余裕が少なく、建物や川をよけながら通したため、東京らしい独特な形になりました。',
+      footer: 'このあと、海へ抜ける景色に変わっていきます。',
+    },
+  },
+  {
+    id:            'event_family_quiz',
+    name:          '家族4択クイズ',
+    icon:          '🧠',
+    lat:           35.6438,
+    lng:           139.7588,
+    defaultRadius: 550,
+    minRadius:     220,
+    contentType:   'quiz',
+    contentData: {
+      question:     'このあと向かう日本科学未来館で、いちばん"未来っぽい"展示テーマとして有名なのはどれだと思う？',
+      choices:      ['ロボット', '恐竜', '忍者', 'お城'],
+      correctIndex: 0,
+      correctMsg:   '正解はロボット。科学未来館ではロボットや地球、宇宙、未来のくらしに関する展示が人気です。着いたら、家族で"いちばん未来っぽかった展示"をあとで話してみましょう。',
+      wrongMsg:     '正解はロボット。でも、恐竜や忍者がいても面白そうですね。着いたら"自分だったらどんな未来館にするか"も話してみましょう。',
+    },
+  },
+  {
+    id:            'event_rainbow_bridge_prelude',
+    name:          'レインボーブリッジ予告',
+    icon:          '🌉',
+    lat:           35.6408,
+    lng:           139.7628,
+    defaultRadius: 450,
+    minRadius:     180,
+    contentType:   'guide',
+    contentData: {
+      icon:      '🌉',
+      title:     'まもなくレインボーブリッジ',
+      body:      'ここから景色が大きく開けて、お台場へ入っていきます。橋に入ったら、短いリズムゲームが始まります。',
+      countdown: true,
+    },
+  },
+  {
+    id:            'event_rhythm_rainbow_bridge',
+    name:          'リズムゲーム（レインボーブリッジ）',
     icon:          '🎮',
-    lat:           35.6310,
-    lng:           139.8800,
+    lat:           35.6388,
+    lng:           139.7648,
     defaultRadius: 350,
     minRadius:     120,
     contentType:   'rhythm-short',
     contentData: {
-      endMessage: '舞浜エリアに入りました。東京ディズニーランドまで、もうすぐです。',
+      endMessage: 'お台場エリアに入りました。科学未来館まで、もうすぐです。',
     },
   },
 ];
 
 // ── localStorage ─────────────────────────────────────────────────
-const START_ANNOUNCEMENT = {
-  title: 'AFEELA GUIDE',
-  text: 'こんにちは！私はアフィーラ。今日の目的地は東京ディズニーランドですね。私が目的地までガイドさせてもらいます！途中でクイズやゲームがあるのでお楽しみに！',
-  audioSrc: 'assets/audio/guides/start_announcement.wav',
-};
-
-const LS_KEY = 'lbe7_nerima_disney_radii';
+const LS_KEY = 'lbe4_event_radii';
 function loadRadii() {
   try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch(_) { return {}; }
 }
@@ -395,48 +323,10 @@ function saveRadii(map) {
   try { localStorage.setItem(LS_KEY, JSON.stringify(map)); } catch(_) {}
 }
 
-function updateConfigGpsStatus(text, tone = 'default') {
-  if (!configGpsStatus) return;
-  configGpsStatus.textContent = text;
-  configGpsStatus.style.color =
-    tone === 'ok' ? '#9fe3b1' :
-    tone === 'warn' ? '#ffd37a' :
-    tone === 'error' ? '#ff9c9c' :
-    '#88aacc';
-}
-
-function requestGpsPreflight() {
-  if (gpsPreflightRequested) return;
-  gpsPreflightRequested = true;
-
-  if (!navigator.geolocation) {
-    updateConfigGpsStatus('GPS: このブラウザでは位置情報を利用できません', 'error');
-    return;
-  }
-
-  updateConfigGpsStatus('GPS: 位置情報の許可を確認してください', 'warn');
-
-  navigator.geolocation.getCurrentPosition(
-    pos => {
-      updateConfigGpsStatus(
-        `GPS: 許可済み ${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`,
-        'ok'
-      );
-    },
-    err => {
-      const detail = err?.message ? ` (${err.message})` : '';
-      updateConfigGpsStatus(`GPS: 許可待ちまたは取得失敗${detail}`, 'warn');
-    },
-    { enableHighAccuracy: true, maximumAge: 0, timeout: 12000 }
-  );
-}
-
 // ── DOM refs ──────────────────────────────────────────────────────
 const configScreen     = document.getElementById('config-screen');
 const configCards      = document.getElementById('config-cards');
-const configGpsStatus  = document.getElementById('config-gps-status');
 const statusScreen     = document.getElementById('status-screen');
-const statusBgCanvas   = document.getElementById('status-bg');
 const contentContainer = document.getElementById('content-container');
 const statusEventName  = document.getElementById('status-event-name');
 const statusDist       = document.getElementById('status-dist');
@@ -449,14 +339,9 @@ const dbgLog           = document.getElementById('dbg-log');
 
 // ── State ─────────────────────────────────────────────────────────
 const audioManager = new AudioManager();
-const statusBackground = new RoadBackground({ speed: 8 });
 let engine = null;
 let events = [];   // working copy with resolved .radius
 let activeContent  = null;
-let lastStatus = null;
-let gpsPreflightRequested = false;
-
-statusBackground.attach(statusBgCanvas);
 
 // ── Build config cards ────────────────────────────────────────────
 const TYPE_LABELS = {
@@ -556,8 +441,6 @@ function buildProgressDots() {
   }
 }
 buildProgressDots();
-requestGpsPreflight();
-configScreen.addEventListener('pointerdown', requestGpsPreflight, { once: true });
 
 function updateProgressDots(states) {
   states.forEach((s, i) => {
@@ -567,13 +450,6 @@ function updateProgressDots(states) {
     if (s.status === 'active') dot.classList.add('active');
     if (s.status === 'fired')  dot.classList.add('done');
   });
-}
-
-function resetProgressDots() {
-  for (let i = 0; i < EVENT_DEFS.length; i++) {
-    const dot = document.getElementById(`sp-dot-${i}`);
-    if (dot) dot.className = 'sp-dot';
-  }
 }
 
 // ── Show / hide content ───────────────────────────────────────────
@@ -593,114 +469,9 @@ function hideContent() {
   activeContent = null;
 }
 
-function renderStatusData({ lat, lng, distToNext, nextEvent, activeIndex, currentIndex, totalEvents }) {
-  statusGps.textContent = lat != null
-    ? `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`
-    : 'GPS: 取得待機中';
-
-  if (activeIndex >= 0) {
-    const ev = events[activeIndex];
-    statusEventName.textContent = `${ev.icon} ${ev.name}`;
-    statusDist.textContent = '発動中';
-    statusDistUnit.textContent = '現在このイベントを表示中';
-  } else if (nextEvent) {
-    statusEventName.textContent = `${nextEvent.icon} ${nextEvent.name}`;
-    if (distToNext < 1) {
-      statusDist.textContent = 'エリア内';
-      statusDistUnit.textContent = '';
-    } else {
-      statusDist.textContent = distToNext.toFixed(0);
-      statusDistUnit.textContent = 'm まで';
-    }
-  } else {
-    statusEventName.textContent = '全イベント完了';
-    statusDist.textContent = '';
-    statusDistUnit.textContent = '';
-  }
-
-  if (activeIndex < 0 && !nextEvent && currentIndex < totalEvents) {
-    const firstEvent = events[0];
-    statusEventName.textContent = firstEvent ? `${firstEvent.icon} ${firstEvent.name}` : 'NEXT EVENT';
-    statusDist.textContent = '--';
-    statusDistUnit.textContent = 'GPS取得待ち';
-  }
-
-  if (activeIndex < 0 && nextEvent) {
-    if (distToNext < 1) {
-      statusDist.textContent = '0';
-      statusDistUnit.textContent = 'm | ジオフェンス内です';
-    } else {
-      statusDistUnit.textContent = 'm で次のイベントが発動';
-    }
-  }
-
-  if (engine) updateProgressDots(engine.getEventStates());
-
-  const latStr = lat != null ? lat.toFixed(6) : '—';
-  const lngStr = lng != null ? lng.toFixed(6) : '—';
-  const distStr = distToNext < Infinity ? `${distToNext.toFixed(0)}m` : '—';
-  const nextName = currentIndex < totalEvents ? events[currentIndex]?.name : '(全完了)';
-  dbgGps.textContent = `${latStr}, ${lngStr}\n次まで: ${distStr} | 待ち[${currentIndex}/${totalEvents}]: ${nextName}`;
-
-  if (document.getElementById('debug-panel').classList.contains('open')) {
-    _updateDebugEvents();
-  }
-  _updateDebugLog();
-}
-
-function renderStartAnnouncementStatus() {
-  statusEventName.textContent = START_ANNOUNCEMENT.title;
-  statusDist.textContent = '';
-  statusDistUnit.textContent = '出発アナウンスを再生中';
-  statusGps.textContent = 'GPS: ガイド開始前';
-  resetProgressDots();
-  dbgGps.textContent = '出発アナウンスを再生中';
-  _updateDebugLog();
-}
-
-function setupEngineAndStart() {
-  engine = new EventEngine(events);
-  lastStatus = null;
-
-  engine.onEventFire = (ev) => {
-    const content = contentRegistry[ev.contentType];
-    if (!content) return;
-    content.onComplete = () => {
-      const afterCompleteNarration =
-        typeof content.consumeAfterCompleteNarration === 'function'
-          ? content.consumeAfterCompleteNarration()
-          : null;
-      engine.markComplete();
-      hideContent();
-      if (afterCompleteNarration) {
-        audioManager.speak(afterCompleteNarration.text, {
-          rate: afterCompleteNarration.rate || 0.9,
-          audioSrc: afterCompleteNarration.audioSrc,
-        });
-      }
-    };
-    showContent(ev.contentType);
-    content.onEnter(ev);
-  };
-
-  engine.onEventExit = (ev) => {
-    const content = contentRegistry[ev.contentType];
-    if (content?.onExit) content.onExit();
-  };
-
-  engine.start((data) => {
-    lastStatus = data;
-    renderStatusData(data);
-  });
-
-  _updateDebugEvents();
-}
-
 // ── START button ──────────────────────────────────────────────────
-document.getElementById('config-start-btn').addEventListener('click', async () => {
+document.getElementById('config-start-btn').addEventListener('click', () => {
   audioManager.unlock();
-  audioManager.stopSpeech();
-  statusBackground.start();
 
   // Build events with resolved radii from UI
   events = EVENT_DEFS.map(def => {
@@ -715,18 +486,8 @@ document.getElementById('config-start-btn').addEventListener('click', async () =
     const content = contentRegistry[ev.contentType];
     if (!content) return;
     content.onComplete = () => {
-      const afterCompleteNarration =
-        typeof content.consumeAfterCompleteNarration === 'function'
-          ? content.consumeAfterCompleteNarration()
-          : null;
       engine.markComplete();
       hideContent();
-      if (afterCompleteNarration) {
-        audioManager.speak(afterCompleteNarration.text, {
-          rate: afterCompleteNarration.rate || 0.9,
-          audioSrc: afterCompleteNarration.audioSrc,
-        });
-      }
     };
     showContent(ev.contentType);
     content.onEnter(ev);
@@ -737,22 +498,7 @@ document.getElementById('config-start-btn').addEventListener('click', async () =
     if (content?.onExit) content.onExit();
   };
 
-  configScreen.classList.add('hidden');
-  statusScreen.classList.remove('hidden');
-  renderStartAnnouncementStatus();
-
-  try {
-    await audioManager.speak(START_ANNOUNCEMENT.text, {
-      rate: 0.9,
-      audioSrc: START_ANNOUNCEMENT.audioSrc,
-    });
-  } catch (_) {}
-
   engine.start(({ msg, lat, lng, distToNext, nextEvent, activeIndex, currentIndex, totalEvents }) => {
-    lastStatus = { msg, lat, lng, distToNext, nextEvent, activeIndex, currentIndex, totalEvents };
-    renderStatusData(lastStatus);
-    return;
-
     // Status screen
     statusGps.textContent = lat != null
       ? `GPS: ${lat.toFixed(5)}, ${lng.toFixed(5)}`
@@ -762,7 +508,7 @@ document.getElementById('config-start-btn').addEventListener('click', async () =
       const ev = events[activeIndex];
       statusEventName.textContent = `${ev.icon} ${ev.name}`;
       statusDist.textContent      = '発動中';
-      statusDistUnit.textContent  = '現在このイベントを表示中';
+      statusDistUnit.textContent  = '';
     } else if (nextEvent) {
       statusEventName.textContent = `${nextEvent.icon} ${nextEvent.name}`;
       if (distToNext < 1) {
@@ -776,22 +522,6 @@ document.getElementById('config-start-btn').addEventListener('click', async () =
       statusEventName.textContent = '全イベント完了 🎉';
       statusDist.textContent      = '';
       statusDistUnit.textContent  = '';
-    }
-
-    if (activeIndex < 0 && !nextEvent && currentIndex < totalEvents) {
-      const firstEvent = events[0];
-      statusEventName.textContent = firstEvent ? `${firstEvent.icon} ${firstEvent.name}` : 'NEXT EVENT';
-      statusDist.textContent = '--';
-      statusDistUnit.textContent = 'GPS取得待ち';
-    }
-
-    if (activeIndex < 0 && nextEvent) {
-      if (distToNext < 1) {
-        statusDist.textContent = '0';
-        statusDistUnit.textContent = 'm | ジオフェンス内です';
-      } else {
-        statusDistUnit.textContent = 'm で次のイベントが発動';
-      }
     }
 
     if (engine) updateProgressDots(engine.getEventStates());
